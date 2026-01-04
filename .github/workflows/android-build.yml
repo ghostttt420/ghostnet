@@ -1,1 +1,51 @@
+name: Build Ghost-Net APK
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # 1. Setup Environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      # 2. Install Dependencies (The "npm install" part)
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm install capacitor-community/bluetooth-le # The Bluetooth Plugin
+
+      # 3. initialize Android Project
+      - name: Add Android Platform
+        run: |
+          npx cap add android
+          npx cap sync
+
+      # 4. Build the APK
+      - name: Build APK
+        run: |
+          cd android
+          ./gradlew assembleDebug
+
+      # 5. Upload the APK so you can download it
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: ghost-net-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
 
