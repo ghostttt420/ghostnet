@@ -4,10 +4,15 @@ on:
   push:
     branches:
       - main
+      - master  # Added this so it works on both branch names
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - uses: actions/checkout@v3
 
@@ -17,35 +22,40 @@ jobs:
         with:
           node-version: '18'
       
-      - name: Setup Java
+      - name: Setup Java 17
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      # 2. Install Dependencies (The "npm install" part)
+      # 2. Install Dependencies
       - name: Install Dependencies
         run: |
           npm install
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          npm install capacitor-community/bluetooth-le # The Bluetooth Plugin
+          npm install @capacitor-community/bluetooth-le
 
-      # 3. initialize Android Project
-      - name: Add Android Platform
+      # 3. Create Android Project (The "Ghost" Step)
+      - name: Initialize Android Platform
         run: |
           npx cap add android
           npx cap sync
 
-      # 4. Build the APK
+      # 4. FIX: Force Permissions (The Magic Fix)
+      - name: Fix Gradle Permissions
+        run: |
+          cd android
+          chmod +x gradlew
+
+      # 5. Build the APK
       - name: Build APK
         run: |
           cd android
           ./gradlew assembleDebug
 
-      # 5. Upload the APK so you can download it
+      # 6. Upload Artifact
       - name: Upload APK
         uses: actions/upload-artifact@v3
         with:
           name: ghost-net-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
-
