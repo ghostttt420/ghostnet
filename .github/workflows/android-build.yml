@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - master  # Added this so it works on both branch names
+      - master
 
 jobs:
   build:
@@ -14,16 +14,16 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4       # Upgraded from v3
 
       # 1. Setup Environment
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4     # Upgraded from v3
         with:
           node-version: '18'
       
-      - name: Setup Java 17
-        uses: actions/setup-java@v3
+      - name: Setup Java
+        uses: actions/setup-java@v4     # Upgraded from v3
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -35,13 +35,13 @@ jobs:
           npm install @capacitor/core @capacitor/cli @capacitor/android
           npm install @capacitor-community/bluetooth-le
 
-      # 3. Create Android Project (The "Ghost" Step)
+      # 3. Initialize Android Platform
       - name: Initialize Android Platform
         run: |
           npx cap add android
           npx cap sync
 
-      # 4. FIX: Force Permissions (The Magic Fix)
+      # 4. FIX: Force Permissions
       - name: Fix Gradle Permissions
         run: |
           cd android
@@ -53,9 +53,9 @@ jobs:
           cd android
           ./gradlew assembleDebug
 
-      # 6. Upload Artifact
+      # 6. Upload Artifact (THE FIX)
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # The Critical Fix (v3 -> v4)
         with:
           name: ghost-net-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
